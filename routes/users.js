@@ -13,6 +13,7 @@ router.post('/users', (req, res, next) => {
 
   if (missingField) {
     const err = new Error(`Missing '${missingField}' in request body`);
+    console.log('err');
     err.status = 422;
     return next(err);
   }
@@ -23,7 +24,7 @@ router.post('/users', (req, res, next) => {
   );
 
   if (nonStringField) {
-    const err = new Error(`Field: '${nonStringField}' must be type String`);
+    const err = new Error(`Field: '${nonStringField}' is not type String`);
     err.status = 422;
     return next(err);
   }
@@ -41,7 +42,7 @@ router.post('/users', (req, res, next) => {
   );
 
   if (nonTrimmedField) {
-    const err = new Error(`Field: '${nonTrimmedField}' cannot start or end with whitespace`);
+    const err = new Error(`Cannot start or end with whitespace`);
     err.status = 422;
     return next(err);
   }
@@ -71,7 +72,7 @@ router.post('/users', (req, res, next) => {
 
   if (tooLargeField) {
     const max = sizedFields[tooLargeField].max;
-    const err = new Error(`Field: '${tooSmallField}' must be at most ${max} characters long`);
+    const err = new Error(`Field: '${tooLargeField}' must be at most ${max} characters long`);
     err.status = 422;
     return next(err);
   }
@@ -95,7 +96,7 @@ router.post('/users', (req, res, next) => {
     })
     .catch(err => {
       if (err.code === 11000) {
-        err = new Error('The username already exists');
+        err = new Error('Username already exists');
         err.status = 400;
       }
       next(err);

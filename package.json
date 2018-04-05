@@ -10,7 +10,7 @@
 	"main": "server.js",
 	"scripts": {
 		"start": "node server.js",
-		"test": "cross-env NODE_ENV=test mocha --exit"
+		"test": "cross-env NODE_ENV=test mocha --exit --timeout 5000"
 	},
 	"dependencies": {
 		"bcryptjs": "^2.4.3",

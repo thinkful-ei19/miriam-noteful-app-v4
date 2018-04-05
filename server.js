@@ -37,8 +37,8 @@ passport.use(jwtStrategy);
 app.use('/api', usersRouter);
 app.use('/api', authRouter);
 
-// Endpoints below this require a valid JWT
-app.use(passport.authenticate('jwt', { session: false, failWithError: true }));
+// Endpoints below this require a valid JWT but that is specified in 
+// corresponding router file
 
 app.use('/api', notesRouter);
 app.use('/api', foldersRouter);

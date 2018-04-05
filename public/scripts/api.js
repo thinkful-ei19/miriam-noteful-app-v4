@@ -18,7 +18,6 @@ const api = (function () {
       url: path,
       headers: { 'Authorization': `Bearer ${store.authToken}` } 
     });
-    .catch(handleErrors);
   };
   const update = function (path, obj) {
     return $.ajax({
@@ -56,4 +55,4 @@ const api = (function () {
     update,
     remove
   };
-}());
+} ());

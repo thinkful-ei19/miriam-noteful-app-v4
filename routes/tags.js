@@ -3,14 +3,25 @@
 const express = require('express');
 const router = express.Router();
 
+const app = express();
+const passport = require('passport');
+
 const mongoose = require('mongoose');
 
 const Tag = require('../models/tag');
 const Note = require('../models/note');
 
+// require authoriztion to use tags api methods
+const userAuth = passport.authenticate('jwt', { session: false, failWithError: true });
+
+
 /* ========== GET/READ ALL ITEMS ========== */
-router.get('/tags', (req, res, next) => {
-  Tag.find()
+router.get('/tags', userAuth, (req, res, next) => {
+  const userId = req.user.id;
+
+  let filter = { userId };
+
+  Tag.find(filter)
     .sort('name')
     .then(results => {
       res.json(results);
@@ -21,16 +32,19 @@ router.get('/tags', (req, res, next) => {
 });
 
 /* ========== GET/READ A SINGLE ITEM ========== */
-router.get('/tags/:id', (req, res, next) => {
+router.get('/tags/:id', userAuth, (req, res, next) => {
   const { id } = req.params;
+  const userId = req.user.id;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     const err = new Error('The `id` is not valid');
     err.status = 400;
     return next(err);
   }
+ 
+  let filter = { userId };
 
-  Tag.findById(id)
+  Tag.findOne( { _id: id, userId} )
     .then(result => {
       if (result) {
         res.json(result);
@@ -44,10 +58,11 @@ router.get('/tags/:id', (req, res, next) => {
 });
 
 /* ========== POST/CREATE AN ITEM ========== */
-router.post('/tags', (req, res, next) => {
+router.post('/tags', userAuth, (req, res, next) => {
   const { name } = req.body;
+  const userId = req.user.id;
 
-  const newTag = { name };
+  const newTag = { name, userId };
 
   /***** Never trust users - validate input *****/
   if (!name) {
@@ -70,9 +85,11 @@ router.post('/tags', (req, res, next) => {
 });
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
-router.put('/tags/:id', (req, res, next) => {
+router.put('/tags/:id', userAuth, (req, res, next) => {
   const { id } = req.params;
   const { name } = req.body;
+  const { userId } = req.user.id;
+  const updateItem = { name }
 
   /***** Never trust users - validate input *****/
   if (!name) {
@@ -89,7 +106,7 @@ router.put('/tags/:id', (req, res, next) => {
 
   const updateTag = { name };
 
-  Tag.findByIdAndUpdate(id, updateTag, { new: true })
+  Tag.findOneAndUpdate( { _id: id, userId }, updateTag, { new: true })
     .then(result => {
       if (result) {
         res.json(result);
@@ -107,10 +124,12 @@ router.put('/tags/:id', (req, res, next) => {
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
-router.delete('/tags/:id', (req, res, next) => {
+router.delete('/tags/:id', userAuth, (req, res, next) => {
   const { id } = req.params;
-  const tagRemovePromise = Tag.findByIdAndRemove(id);
-  // const tagRemovePromise = Tag.remove({ _id: id }); // NOTE **underscore** _id
+  const userId = req.user.id;
+
+ // *** promise only for tag id and user id   *****
+ const tagRemovePromise = Tag.findOneAndRemove( { _id: id, userId} );
 
   const noteUpdatePromise = Note.updateMany(
     { 'tags': id, },
